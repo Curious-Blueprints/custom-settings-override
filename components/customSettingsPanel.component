@@ -1,0 +1,60 @@
+<apex:component controller="SuperUserBase" id="su_base" allowDML="true">
+    <apex:attribute type="String" name="settingObject" assignTo="{!objectType}" required="true" description="The API name of the custom setting"/>
+    <apex:attribute type="String" name="title" default="Custom Settings" required="false" description="Page title" />
+    <apex:attribute type="String" name="subTitle" default="Configure Custom Settings" required="false" description="Page subtitle" />
+    <apex:sectionHeader title="{!title}" subtitle="{!subTitle}"/>
+
+    <apex:form id="su_form">
+        <apex:pageBlock id="su_block">
+            <apex:pageBlockButtons >
+            	<apex:commandButton value="New" action="{!newSetting}" reRender="{!$Component.su_form.su_detailPanel}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!settingsMaps}" var="setting" id="su_table">
+                <apex:repeat value="{!settingFields}" var="settingField">
+                    <apex:column value="{!setting[settingField.apiName]}" headerValue="{!settingField.displayName}"/>
+                </apex:repeat>
+                <apex:column headerValue="Details">
+                    <apex:commandLink value="View Details {!setting['Id']}" action="{!setActiveSetting}" reRender="{!$Component.su_form.su_detailPanel}">
+                        <apex:param name="settingId" value="{!setting['Id']}"/>
+                    </apex:commandLink>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        <apex:outputPanel id="su_detailPanel">
+            <apex:pageBlock id="su_detailView" rendered="{!NOT(activeSetting = null)}">
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Close" action="{!setActiveSetting}" reRender="{!$Component.su_detailPanel}" rendered="{!isActiveView}"/>
+                    <apex:commandButton value="Edit" action="{!toggleEditMode}" reRender="{!$Component.su_detailPanel}" rendered="{!isActiveView}"/>
+                    <apex:commandButton value="Delete" action="{!deleteSetting}" reRender="{!$Component.su_form}" rendered="{!isActiveView}" onclick="if(!confirm('Are you sure?')){return false};"/>
+                    <apex:commandButton value="Cancel" action="{!cancelEditMode}" immediate="true" reRender="{!$Component.su_detailPanel}" rendered="{!isActiveEdit}"/>
+                    <apex:commandButton value="OK" action="{!asdfSetting}" reRender="{!$Component.su_form}" rendered="{!isActiveEdit}" />
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection rendered="{!NOT(activeSetting= null)}">
+                	<apex:repeat value="{!settingFields}" var="settingField">
+
+                        <apex:pageBlockSectionItem rendered="{!isActiveView}">
+                            <apex:outputLabel value="{!settingField.displayName} {!settingField.fieldType}"></apex:outputLabel>
+                            <apex:outputField value="{!activeSetting[settingField.apiName]}"></apex:outputField>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!AND(isActiveEdit, NOT(settingField.fieldType = 'BOOLEAN'), NOT(settingField.fieldType = 'STRING'))}">
+                            <apex:outputLabel value="{!settingField.displayName} {!settingField.fieldType}"></apex:outputLabel>
+                            <apex:inputField value="{!activeSetting[settingField.apiName]}"></apex:inputField>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!AND(isActiveEdit, settingField.fieldType = 'BOOLEAN')}">
+                            <apex:outputLabel value="{!settingField.displayName} {!settingField.fieldType}"></apex:outputLabel>
+                            <apex:inputCheckbox value="{!activeSetting[settingField.apiName]}"></apex:inputCheckbox>
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!AND(isActiveEdit, settingField.fieldType = 'STRING')}">
+                            <apex:outputLabel value="{!settingField.displayName} {!settingField.fieldType}"></apex:outputLabel>
+                            <apex:inputText value="{!activeSetting[settingField.apiName]}"></apex:inputText>
+                        </apex:pageBlockSectionItem>
+
+                	</apex:repeat>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+</apex:component>

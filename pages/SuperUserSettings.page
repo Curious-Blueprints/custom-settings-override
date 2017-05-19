@@ -1,0 +1,7 @@
+<apex:page docType="html-5.0" >
+    <c:customSettingPanel
+      settingObject="ctk__Demo_Setting__c"
+      tableFields="name, ctk__is_checked__c, ctk__integer_value__c"
+      detailFields="ctk__is_checked__c, ctk__integer_value__c, id, name"
+      hiddenFields="lastmodifiedbyid, createdbyid"/>
+</apex:page>

@@ -1,0 +1,75 @@
+<apex:component controller="customSettingPanelController" allowDML="true" id="su_component">
+
+    <apex:attribute type="String" name="settingObject"                                     assignTo="{!sObjectType}"      required="true"  description="The API name of the custom setting"/>
+    <apex:attribute type="String" name="hiddenFields"  default=""                          assignTo="{!omittedFieldList}" required="false" description="The comma-delimited list of fields you want to be omitted; ignored if you set the details fields." />
+    <apex:attribute type="String" name="detailFields"  default=""                          assignTo="{!detailFieldList}"  required="false" description="The comma-delimited list of fields you want to be on the detail view." />
+    <apex:attribute type="String" name="tableFields"   default=""                          assignTo="{!listFieldList}"    required="false" description="The comma-delimited list of columns you want to appear on the list" />
+    <apex:attribute type="String" name="title"         default="Custom Settings"                                          required="false" description="Page title" />
+    <apex:attribute type="String" name="subTitle"      default="Configure Custom Settings"                                required="false" description="Page subtitle" />
+
+    <apex:sectionHeader title="{!title}" subtitle="{!subTitle}"/>
+
+    <apex:pageMessages id="su_messages"/>
+
+    <apex:form id="su_form">
+        <apex:pageBlock id="su_block">
+            <apex:pageBlockButtons >
+            	<apex:commandButton value="New" action="{!setNewActiveSetting}" reRender="{!$Component.su_form.su_details}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!allSettingsMap}" var="setting" id="su_table">
+                <apex:repeat value="{!listFields}" var="settingField">
+                    <apex:column value="{!setting[settingField.apiName]}" headerValue="{!settingField.displayName}"/>
+                </apex:repeat>
+                <apex:column headerValue="Details">
+                    <apex:commandLink value="View Details" action="{!setActiveSetting}" reRender="{!$Component.su_form.su_details}">
+                        <apex:param name="settingId" value="{!allSettingsIdMap[setting['id']]}"/>
+                    </apex:commandLink>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        <apex:outputPanel layout="none" id="su_details">
+          <apex:pageBlock rendered="{!NOT(activeSetting = null)}" id="su_detailBlock">
+
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Close" action="{!setActiveSetting}" rendered="{!isActivelyViewing}" reRender="{!$Component.su_form.su_details}"/>
+                <apex:commandButton value="Edit" action="{!setEditMode}" rendered="{!isActivelyViewing}" reRender="{!$Component.su_form.su_details}"/>
+                <apex:commandButton value="Delete" action="{!deleteActiveSetting}" rendered="{!isActivelyViewing}" reRender="{!$Component.su_form}, {!$Component.su_messages}" onclick="if(!confirm('Are you sure?')){return false};"/>
+                <apex:commandButton value="Cancel" action="{!setViewMode}" immediate="true" rendered="{!isActivelyEditing}" reRender="{!$Component.su_form.su_details}"/>
+                <apex:commandButton value="OK" action="{!saveActiveSetting}" rendered="{!isActivelyEditing}" reRender="{!$Component.su_form}, {!$Component.su_messages}"/>
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection id="su_detailFields">
+              <apex:repeat value="{!settingFields}" var="field">
+
+                <apex:pageBlockSectionItem rendered="{!
+                    OR(
+                      isActivelyViewing,
+                      field.isReadOnly)}">
+                    <apex:outputLabel value="{!field.displayName} {!field.type}"></apex:outputLabel>
+                    <apex:outputText value="{!activeSetting[field.apiName]}"></apex:outputText>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem rendered="{!
+                    AND(
+                      isActivelyEditing,
+                      NOT(field.isReadOnly),
+                      NOT(field.type = 'boolean'))}">
+                    <apex:outputLabel value="{!field.displayName} {!field.type} {!field.isReadOnly}"></apex:outputLabel>
+                    <apex:inputText value="{!activeSetting[field.apiName]}"></apex:inputText>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem rendered="{!
+                    AND(
+                      isActivelyEditing,
+                      NOT(field.isReadOnly),
+                      field.type = 'boolean')}">
+                    <apex:outputLabel value="{!field.displayName} {!field.type} {!field.isReadOnly}"></apex:outputLabel>
+                    <apex:inputCheckbox value="{!activeSetting[field.apiName]}"></apex:inputCheckbox>
+                </apex:pageBlockSectionItem>
+
+              </apex:repeat>
+            </apex:pageBlockSection>
+          </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+</apex:component>
